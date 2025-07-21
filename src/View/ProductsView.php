@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Raketa\BackendTestTask\View;
 
 use Raketa\BackendTestTask\Repository\Entity\Product;
@@ -12,18 +14,11 @@ readonly class ProductsView
     ) {
     }
 
-    public function toArray(string $category): array
+    public function toArray(int $categoryId): array
     {
         return array_map(
-            fn (Product $product) => [
-                'id' => $product->getId(),
-                'uuid' => $product->getUuid(),
-                'category' => $product->getCategory(),
-                'description' => $product->getDescription(),
-                'thumbnail' => $product->getThumbnail(),
-                'price' => $product->getPrice(),
-            ],
-            $this->productRepository->getByCategory($category)
+            fn (Product $product) => $product->toArray(),
+            $this->productRepository->getByCategoryId($categoryId)
         );
     }
 }

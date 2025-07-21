@@ -1,14 +1,19 @@
-create table if not exists products
-(
-    id int auto_increment primary key,
-    uuid  varchar(255) not null comment 'UUID товара',
-    category  varchar(255) not null comment 'Категория товара',
-    is_active tinyint default 1  not null comment 'Флаг активности',
-    name text default '' not null comment 'Тип услуги',
-    description text null comment 'Описание товара',
-    thumbnail  varchar(255) null comment 'Ссылка на картинку',
-    price float not null comment 'Цена'
-)
-    comment 'Товары';
+CREATE TABLE IF NOT EXISTS rk_products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    uuid VARCHAR(255) NOT NULL UNIQUE COMMENT 'UUID товара',
+    category_id INT NOT NULL COMMENT 'ID категории товара',
+    is_active TINYINT(1) DEFAULT 1 NOT NULL COMMENT 'Флаг активности',
+    name VARCHAR(100) NOT NULL COMMENT 'Тип услуги',
+    description TEXT NULL COMMENT 'Описание товара',
+    thumbnail VARCHAR(255) NULL COMMENT 'Ссылка на картинку',
+    price DECIMAL(10,2) NOT NULL COMMENT 'Цена',
+    FOREIGN KEY (category_id) REFERENCES rk_categories(id)
+) COMMENT 'Товары';
 
-create index is_active_idx on products (is_active);
+CREATE INDEX idx_rk_products_is_active ON rk_products (is_active, category_id);
+
+CREATE TABLE IF NOT EXISTS rk_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT NULL
+) COMMENT 'Категории товаров';

@@ -10,10 +10,10 @@ readonly class Product
         private int $id,
         private string $uuid,
         private bool $isActive,
-        private string $category,
+        private int $categoryId,
         private string $name,
-        private string $description,
-        private string $thumbnail,
+        private ?string $description,
+        private ?string $thumbnail,
         private float $price,
     ) {
     }
@@ -33,9 +33,9 @@ readonly class Product
         return $this->isActive;
     }
 
-    public function getCategory(): string
+    public function getCategoryId(): int
     {
-        return $this->category;
+        return $this->categoryId;
     }
 
     public function getName(): string
@@ -56,5 +56,18 @@ readonly class Product
     public function getPrice(): float
     {
         return $this->price;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'uuid' => $this->uuid,
+            'category_id' => $this->categoryId,
+            'name' => $this->name,
+            'description' => $this->description,
+            'thumbnail' => $this->thumbnail,
+            'price' => $this->price,
+        ];
     }
 }

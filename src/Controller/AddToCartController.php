@@ -22,7 +22,12 @@ readonly class AddToCartController
     public function get(RequestInterface $request): ResponseInterface
     {
         $rawRequest = json_decode($request->getBody()->getContents(), true);
-        $product = $this->productRepository->getByUuid($rawRequest['productUuid']);
+
+        try {
+            $product = $this->productRepository->getByUuid($rawRequest['productUuid']);
+        } catch (\RuntimeException $e) {
+            return $this->errorResponse('Product not found', 404);
+        }
 
         $cart = $this->cartManager->getCart();
         $cart->addItem(new CartItem(
@@ -46,5 +51,24 @@ readonly class AddToCartController
         return $response
             ->withHeader('Content-Type', 'application/json; charset=utf-8')
             ->withStatus(200);
+    }
+
+    private function errorResponse(string $message, int $status): ResponseInterface
+    {
+        $response = new JsonResponse();
+
+        $response->getBody()->write(
+            json_encode(
+                [
+                    'status' => 'error',
+                    'message' => $message,
+                ],
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+            )
+        );
+
+        return $response
+            ->withHeader('Content-Type', 'application/json; charset=utf-8')
+            ->withStatus($status);
     }
 }

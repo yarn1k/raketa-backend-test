@@ -19,31 +19,31 @@ readonly class GetCartController
 
     public function get(RequestInterface $request): ResponseInterface
     {
-        $response = new JsonResponse();
         $cart = $this->cartManager->getCart();
 
-        if (! $cart) {
-            $response->getBody()->write(
-                json_encode(
-                    ['message' => 'Cart not found'],
-                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-                )
-            );
-
-            return $response
-                ->withHeader('Content-Type', 'application/json; charset=utf-8')
-                ->withStatus(404);
-        } else {
-            $response->getBody()->write(
-                json_encode(
-                    $this->cartView->toArray($cart),
-                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-                )
-            );
+        if ($cart === null) {
+            return $this->json([
+                'status' => 'fail',
+                'message' => 'Cart not found',
+            ], 404);
         }
+
+        return $this->json([
+            'status' => 'success',
+            'cart' => $this->cartView->toArray($cart),
+        ]);
+    }
+
+    private function json(array $data, int $status = 200): ResponseInterface
+    {
+        $response = new JsonResponse();
+        $response->getBody()->write(json_encode(
+            $data,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        ));
 
         return $response
             ->withHeader('Content-Type', 'application/json; charset=utf-8')
-            ->withStatus(404);
+            ->withStatus($status);
     }
 }

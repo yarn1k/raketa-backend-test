@@ -38,4 +38,34 @@ final class Cart
     {
         $this->items[] = $item;
     }
+
+    public function getTotal(): float
+    {
+        return array_reduce(
+            $this->items,
+            fn (float $carry, CartItem $item) => $carry + $item->getTotal(),
+            0
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'uuid' => $this->uuid,
+            'customer' => $this->customer->toArray(),
+            'payment_method' => $this->paymentMethod,
+            'items' => array_map(fn (CartItem $item) => $item->toArray(), $this->items),
+            'total' => $this->getTotal(),
+        ];
+    }
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            uuid: $data['uuid'],
+            customer: Customer::fromArray($data['customer']),
+            paymentMethod: $data['payment_method'],
+            items: array_map(fn(array $item) => CartItem::fromArray($item), $data['items'] ?? []),
+        );
+    }
 }

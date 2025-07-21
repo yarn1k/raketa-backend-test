@@ -12,37 +12,49 @@ class Connector
 {
     private Redis $redis;
 
-    public function __construct($redis)
+    public function __construct(Redis $redis)
     {
-        return $this->redis = $redis;
+        $this->redis = $redis;
     }
 
     /**
      * @throws ConnectorException
      */
-    public function get(Cart $key)
+    public function get(string $key): ?Cart
     {
         try {
-            return unserialize($this->redis->get($key));
+            $data = $this->redis->get($key);
+
+            if (!$data) {
+                return null;
+            }
+
+            $decoded = json_decode($data, true);
+
+            if (!is_array($decoded)) {
+                return null;
+            }
+
+            return Cart::fromArray($decoded);
         } catch (RedisException $e) {
-            throw new ConnectorException('Connector error', $e->getCode(), $e);
+            throw new ConnectorException('Connector error: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
     /**
      * @throws ConnectorException
      */
-    public function set(string $key, Cart $value)
+    public function set(string $key, string $value, int $ttl): void
     {
         try {
-            $this->redis->setex($key, 24 * 60 * 60, serialize($value));
+            $this->redis->setex($key, $ttl, $value);
         } catch (RedisException $e) {
-            throw new ConnectorException('Connector error', $e->getCode(), $e);
+            throw new ConnectorException('Connector error: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
-    public function has($key): bool
+    public function has(string $key): bool
     {
-        return $this->redis->exists($key);
+        return $this->redis->exists($key) > 0;
     }
 }

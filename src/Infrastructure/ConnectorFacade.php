@@ -1,27 +1,31 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Raketa\BackendTestTask\Infrastructure;
 
 use Redis;
 use RedisException;
+use Psr\Log\LoggerInterface;
 
 class ConnectorFacade
 {
-    public string $host;
-    public int $port = 6379;
-    public ?string $password = null;
-    public ?int $dbindex = null;
+    private string $host;
+    private int $port;
+    private ?string $password;
+    private int $dbindex;
+    protected Connector $connector;
+    protected LoggerInterface $logger;
 
-    public $connector;
-
-    public function __construct($host, $port, $password, $dbindex)
+    public function __construct(string $host, int $port, ?string $password, int $dbindex, LoggerInterface $logger)
     {
         $this->host = $host;
         $this->port = $port;
         $this->password = $password;
         $this->dbindex = $dbindex;
+        $this->logger = $logger;
+
+        $this->build();
     }
 
     protected function build(): void
@@ -29,20 +33,17 @@ class ConnectorFacade
         $redis = new Redis();
 
         try {
-            $isConnected = $redis->isConnected();
-            if (! $isConnected && $redis->ping('Pong')) {
-                $isConnected = $redis->connect(
-                    $this->host,
-                    $this->port,
-                );
-            }
-        } catch (RedisException) {
-        }
+            $redis->connect($this->host, $this->port);
 
-        if ($isConnected) {
-            $redis->auth($this->password);
+            if ($this->password !== null) {
+                $redis->auth($this->password);
+            }
+
             $redis->select($this->dbindex);
+
             $this->connector = new Connector($redis);
+        } catch (RedisException $e) {
+            $this->logger->error('Redis connection failed: ' . $e->getMessage());
         }
     }
 }

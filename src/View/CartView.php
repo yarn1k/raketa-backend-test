@@ -16,43 +16,14 @@ readonly class CartView
 
     public function toArray(Cart $cart): array
     {
-        $data = [
-            'uuid' => $cart->getUuid(),
-            'customer' => [
-                'id' => $cart->getCustomer()->getId(),
-                'name' => implode(' ', [
-                    $cart->getCustomer()->getLastName(),
-                    $cart->getCustomer()->getFirstName(),
-                    $cart->getCustomer()->getMiddleName(),
-                ]),
-                'email' => $cart->getCustomer()->getEmail(),
-            ],
-            'payment_method' => $cart->getPaymentMethod(),
-        ];
+        $result = $cart->toArray();
 
-        $total = 0;
-        $data['items'] = [];
-        foreach ($cart->getItems() as $item) {
-            $total += $item->getPrice() * $item->getQuantity();
-            $product = $this->productRepository->getByUuid($item->getProductUuid());
-
-            $data['items'][] = [
-                'uuid' => $item->getUuid(),
-                'price' => $item->getPrice(),
-                'total' => $total,
-                'quantity' => $item->getQuantity(),
-                'product' => [
-                    'id' => $product->getId(),
-                    'uuid' => $product->getUuid(),
-                    'name' => $product->getName(),
-                    'thumbnail' => $product->getThumbnail(),
-                    'price' => $product->getPrice(),
-                ],
-            ];
+        foreach ($result['items'] as &$item) {
+            $product = $this->productRepository->getByUuid($item['product_uuid']);
+            $item['product'] = $product->toArray();
+            unset($item['product_uuid']);
         }
 
-        $data['total'] = $total;
-
-        return $data;
+        return $result;
     }
 }

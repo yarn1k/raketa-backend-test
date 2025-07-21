@@ -39,4 +39,31 @@ final readonly class Customer
     {
         return $this->email;
     }
+
+    public function getFullName(): string
+    {
+        return trim("{$this->lastName} {$this->firstName} {$this->middleName}");
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'first_name' => $this->firstName,
+            'last_name' => $this->lastName,
+            'middle_name' => $this->middleName,
+            'email' => $this->email,
+        ];
+    }
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            id: (int) $data['id'],
+            firstName: $data['first_name'] ?? '',
+            lastName: $data['last_name'] ?? '',
+            middleName: $data['middle_name'] ?? '',
+            email: $data['email'],
+        );
+    }
 }
